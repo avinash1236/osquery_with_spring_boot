@@ -31,9 +31,16 @@ public class EndpointApplication {
 			"\t\t},\n" +
 			"\t\t\"node_invalid\": false\n" +
 			"}";
+    public static final String LOG_TYPE_RESULT = "\"log_type\":\"result\"";
+    public static final String NODE_KEY = "node_key";
+    public static final String NODE_INVALID_TRUE = "{\"node_invalid\": true}";
+    public static final String NODE_KEY_NODE_SECRET = "{\"node_key\": \"this_is_a_node_secret\"}";
+    public static final String ENROLLMENT_SECRET = "this_is_an_enrollment_secret";
+    public static final String ENROLL_SECRET_KEY = "enroll_secret";
+    public static final String NODE_SECRET = "this_is_a_node_secret";
 
 
-	/**
+    /**
 	 * enroll endpoint to enroll a device. Only allow if the secret matches
 	 * @param request
 	 * @return
@@ -44,13 +51,13 @@ public class EndpointApplication {
         ObjectMapper mapper = new ObjectMapper();
         String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         JsonNode jsonNode = mapper.readValue(body, JsonNode.class);
-        String HTTP_SERVER_ENROLL_SECRET = "this_is_an_enrollment_secret";
+        String HTTP_SERVER_ENROLL_SECRET = ENROLLMENT_SECRET;
         //authenticate enrollment
-        if (jsonNode.has("enroll_secret") &&
-                !HTTP_SERVER_ENROLL_SECRET.equals(jsonNode.get("enroll_secret").asText())) {
-            return "{\"node_invalid\": true}";
+        if (jsonNode.has(ENROLL_SECRET_KEY) &&
+                !HTTP_SERVER_ENROLL_SECRET.equals(jsonNode.get(ENROLL_SECRET_KEY).asText())) {
+            return NODE_INVALID_TRUE;
         }
-        return "{\"node_key\": \"this_is_a_node_secret\"}";
+        return NODE_KEY_NODE_SECRET;
     }
 
 
@@ -65,10 +72,10 @@ public class EndpointApplication {
         ObjectMapper mapper = new ObjectMapper();
         String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
         JsonNode jsonNode = mapper.readValue(body, JsonNode.class);
-        List<String> nodeKeys = Arrays.asList("this_is_a_node_secret");
+        List<String> nodeKeys = Arrays.asList(NODE_SECRET);
         //validate the secret
-        if (!jsonNode.has("node_key") || !nodeKeys.contains(jsonNode.get("node_key").asText())) {
-            return "{\"node_invalid\": true}";
+        if (!jsonNode.has(NODE_KEY) || !nodeKeys.contains(jsonNode.get(NODE_KEY).asText())) {
+            return NODE_INVALID_TRUE;
         }
         return EXAMPLE_CONFIG;
     }
@@ -82,7 +89,7 @@ public class EndpointApplication {
     @PostMapping("/logger")
     public void logger(HttpServletRequest request) throws IOException {
         String body = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-        if (body.contains("\"log_type\":\"result\"")) {
+        if (body.contains(LOG_TYPE_RESULT)) {
             LOG.info("data : {}", body);
         }
     }
